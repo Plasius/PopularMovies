@@ -4,10 +4,18 @@ import android.annotation.SuppressLint;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -22,19 +30,28 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final int MOVIE_LOADER_ID = 3204;
     private static final String LOAD_TYPE_EXTRA = "whattoload";
     private static final String LOAD_TOP_RATED = "top_rated";
+    private static final String LOAD_POPULAR = "popular";
+    private static final String LOAD_FAVORITED = "favorites";
     private static String cache = null;
+    private static String currentCache = LOAD_POPULAR;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initLoader();
+        initLoader(LOAD_POPULAR);
 
     }
 
-    private void initLoader() {
+    private void initLoader(String whattoload) {
+        if(whattoload != currentCache)
+            cache=null;
+        currentCache = whattoload;
+        if(whattoload.equals(LOAD_FAVORITED))
+            return;
+
         Bundle bundle = new Bundle();
-        bundle.putString(LOAD_TYPE_EXTRA, LOAD_TOP_RATED);
+        bundle.putString(LOAD_TYPE_EXTRA, whattoload);
 
         LoaderManager loaderManager = getSupportLoaderManager();
         Loader<String> loader = loaderManager.getLoader(MOVIE_LOADER_ID);
@@ -46,19 +63,27 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
-    private void initGridView(String[] images){
+    private void initGridView(String[] images, long[] ids){
         GridView gridview = findViewById(R.id.gridview);
-        gridview.setAdapter(new IconAdapter(images, this));
+        gridview.setAdapter(new IconAdapter(images, ids, this));
+        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                Toast.makeText(MainActivity.this, v.getTag().toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private  String[] formatAPIResponse(String data){
+    private void processAPIResponse(String data){
         String[] images= new String[20];
+        long[] ids= new long[20];
         String baseURL = "http://image.tmdb.org/t/p/"+"w185/";
         try {
             JSONObject jObject = new JSONObject(data);
             JSONArray jsonImages = jObject.getJSONArray("results");
             for(int i=0; i<jsonImages.length(); i++){
                 images[i] = baseURL + jsonImages.getJSONObject(i).getString("poster_path");
+                ids[i] = jsonImages.getJSONObject(i).getLong("id");
             }
 
         }catch (Exception e){
@@ -67,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
         Log.v("MainActivity", data);
-        return images;
+        initGridView(images, ids);
     }
 
     //LoaderManager
@@ -116,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void deliverResult(String data) {
                 cache= data;
-                initGridView(formatAPIResponse(data));
+                processAPIResponse(data);
             }
         };
     }
@@ -129,5 +154,56 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(Loader<String> loader) {
 
+    }
+
+    //LIFECYCLE
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuItem item = menu.findItem(R.id.spinner);
+        Spinner spinner = (Spinner) item.getActionView();
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.load_array, android.R.layout.simple_spinner_item);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinner.setAdapter(adapter);
+                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        switch (position){
+                            case 0:
+                                initLoader(LOAD_POPULAR);
+                                break;
+                            case 1:
+                                initLoader(LOAD_TOP_RATED);
+                                break;
+                            case 2:
+                                initLoader(LOAD_FAVORITED);
+                                break;
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
+
+
+
+        return true;
     }
 }

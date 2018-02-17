@@ -17,9 +17,11 @@ import com.squareup.picasso.Picasso;
 public class IconAdapter extends BaseAdapter{
     Context context;
     String[] images;
-    public IconAdapter(String[] images, Context c){
+    long[] ids;
+    public IconAdapter(String[] images, long[] ids, Context c){
         context= c;
         this.images = images;
+        this.ids= ids;
     }
 
     @Override
@@ -38,9 +40,9 @@ public class IconAdapter extends BaseAdapter{
             v= convertView;
         }
 
+        v.setTag(ids[position]);
         ImageView img = v.findViewById(R.id.item_icon_iv);
         Picasso.with(context).load(images[position]).into(img);
-        img.invalidate();
         return v;
     }
 
