@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final String LOAD_TYPE_EXTRA = "whattoload";
     private static final String LOAD_TOP_RATED = "top_rated";
     private static final String LOAD_POPULAR = "popular";
-    private static final String LOAD_FAVORITED = "favorites";
+    //private static final String LOAD_FAVORITED = "favorites";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,49 +122,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     //LoaderManager
-    @SuppressLint("StaticFieldLeak")
     @Override
-    public Loader<String> onCreateLoader(int id, final Bundle args) {
-        return new AsyncTaskLoader<String>(this) {
-            @Override
-            public String loadInBackground() {
-
-
-                HttpURLConnection urlConnection = null;
-                try {
-                    URL url = new URL("http://api.themoviedb.org/3/movie/"+args.getString(LOAD_TYPE_EXTRA)+"?api_key="+ "6c07d7cb591067d42a5814368f770c5d");
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                    InputStream in = urlConnection.getInputStream();
-
-                    Scanner scanner = new Scanner(in);
-                    scanner.useDelimiter("\\A");
-
-                    boolean hasInput = scanner.hasNext();
-                    if (hasInput) {
-                        return scanner.next();
-                    } else {
-                        return null;
-                    }
-
-                }catch(Exception e){
-                    e.printStackTrace();
-                } finally {
-                    urlConnection.disconnect();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onStartLoading() {
-
-                forceLoad();
-            }
-
-            @Override
-            public void deliverResult(String data) {
-                processAPIResponse(data);
-            }
-        };
+    public Loader<String> onCreateLoader(int id,  Bundle args) {
+        return new MovieAsyncLoader(this, args);
     }
 
     @Override
@@ -176,4 +136,54 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onLoaderReset(Loader<String> loader) {
 
     }
+
+    static class MovieAsyncLoader extends AsyncTaskLoader<String>{
+        MainActivity context;
+        Bundle args;
+        private MovieAsyncLoader(MainActivity c, Bundle a){
+            super(c);
+            context = c;
+            args= a;
+        }
+
+        @Override
+        public String loadInBackground() {
+
+
+            HttpURLConnection urlConnection = null;
+            try {
+                URL url = new URL("http://api.themoviedb.org/3/movie/"+args.getString(LOAD_TYPE_EXTRA)+"?api_key="+ "6c07d7cb591067d42a5814368f770c5d");
+                urlConnection = (HttpURLConnection) url.openConnection();
+                InputStream in = urlConnection.getInputStream();
+
+                Scanner scanner = new Scanner(in);
+                scanner.useDelimiter("\\A");
+
+                boolean hasInput = scanner.hasNext();
+                if (hasInput) {
+                    return scanner.next();
+                } else {
+                    return null;
+                }
+
+            }catch(Exception e){
+                e.printStackTrace();
+            } finally {
+                urlConnection.disconnect();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onStartLoading() {
+
+            forceLoad();
+        }
+
+        @Override
+        public void deliverResult(String data) {
+            context.processAPIResponse(data);
+        }
+    }
 }
+

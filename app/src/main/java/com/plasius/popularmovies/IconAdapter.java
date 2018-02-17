@@ -42,7 +42,7 @@ public class IconAdapter extends BaseAdapter{
 
         v.setTag(ids[position]);
         ImageView img = v.findViewById(R.id.item_icon_iv);
-        Picasso.with(context).load(images[position]).into(img);
+        Picasso.with(context).load(images[position]).resize(185,278).into(img);
         return v;
     }
 
