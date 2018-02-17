@@ -57,14 +57,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
 
 
+
+
         initQueryLoader(LOAD_POPULAR);
     }
 
     //called at the start and when the spinner changed
     private void initQueryLoader(String whattoload) {
-        if(!isOnline())
+        if(!Utils.isOnline(this)){
             Toast.makeText(this, "Please get a connection.", Toast.LENGTH_SHORT).show();
-
+            return;
+        }
         Bundle bundle = new Bundle();
         bundle.putString(LOAD_TYPE_EXTRA, whattoload);
 
@@ -76,14 +79,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             loaderManager.restartLoader(MOVIE_LOADER_ID, bundle, this);
         }
 
-    }
-
-    //checks whether we have an access to the internet
-    public boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     //called with the data by processAPIResponse to build our GridView
@@ -99,6 +94,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             }
         });
+
+
     }
 
     //called when we have data, calls initGridView()
@@ -124,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     //LoaderManager
     @Override
     public Loader<String> onCreateLoader(int id,  Bundle args) {
-        return new MovieAsyncLoader(this, args);
+        return new MoviesAsyncLoader(this, args);
     }
 
     @Override
@@ -137,10 +134,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
-    static class MovieAsyncLoader extends AsyncTaskLoader<String>{
+    static class MoviesAsyncLoader extends AsyncTaskLoader<String>{
         MainActivity context;
         Bundle args;
-        private MovieAsyncLoader(MainActivity c, Bundle a){
+        private MoviesAsyncLoader(MainActivity c, Bundle a){
             super(c);
             context = c;
             args= a;
@@ -152,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             HttpURLConnection urlConnection = null;
             try {
-                URL url = new URL("http://api.themoviedb.org/3/movie/"+args.getString(LOAD_TYPE_EXTRA)+"?api_key="+ "6c07d7cb591067d42a5814368f770c5d");
+                URL url = new URL("http://api.themoviedb.org/3/movie/"+args.getString(LOAD_TYPE_EXTRA)+"?api_key="+  context.getString(R.string.API_KEY));
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = urlConnection.getInputStream();
 

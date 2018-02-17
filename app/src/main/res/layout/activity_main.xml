@@ -19,7 +19,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/movies_label"
+                android:text="@string/popular_movies_text"
                 android:textSize="18sp"
                 android:layout_alignParentStart="true"/>
             <Spinner

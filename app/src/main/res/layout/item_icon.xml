@@ -6,4 +6,5 @@
     android:layout_centerHorizontal="true"
     android:layout_alignParentTop="true"
     android:adjustViewBounds="true"
-    xmlns:android="http://schemas.android.com/apk/res/android" />
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:contentDescription="@string/poster_text" />

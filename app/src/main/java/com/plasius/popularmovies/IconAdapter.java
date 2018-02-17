@@ -15,10 +15,11 @@ import com.squareup.picasso.Picasso;
  */
 
 public class IconAdapter extends BaseAdapter{
-    Context context;
-    String[] images;
-    long[] ids;
-    public IconAdapter(String[] images, long[] ids, Context c){
+    private Context context;
+    private String[] images;
+    private long[] ids;
+
+    IconAdapter(String[] images, long[] ids, Context c){
         context= c;
         this.images = images;
         this.ids= ids;

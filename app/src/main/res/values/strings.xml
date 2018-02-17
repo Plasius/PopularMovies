@@ -1,8 +1,14 @@
 <resources>
     <string name="app_name">Popular Movies</string>
-    <string name="APIKEY">INSERT_HERE</string>
+    <string name="API_KEY">INSERT_HERE</string>
     <string name="menu_sort_label">sort</string>
-    <string name="movies_label">Movies</string>
+    <string name="loading_text">Loading</string>
+    <string name="synopsis_text">Synopsis:</string>
+    <string name="released_text">Released:</string>
+    <string name="rating_text">Rating:</string>
+    <string name="title_text">Title:</string>
+    <string name="poster_text">Poster</string>
+    <string name="popular_movies_text">Popular Movies</string>
 
     <string-array name="load_array">
         <item>Popular</item>
