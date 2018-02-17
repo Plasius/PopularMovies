@@ -1,6 +1,8 @@
 package com.plasius.popularmovies;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.PersistableBundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -32,21 +34,37 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final String LOAD_TOP_RATED = "top_rated";
     private static final String LOAD_POPULAR = "popular";
     private static final String LOAD_FAVORITED = "favorites";
-    private static String cache = null;
-    private static String currentCache = LOAD_POPULAR;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Spinner spinner= findViewById(R.id.spinner);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position){
+                    case 0:
+                        initLoader(LOAD_POPULAR);
+                        break;
+                    case 1:
+                        initLoader(LOAD_TOP_RATED);
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         initLoader(LOAD_POPULAR);
 
     }
 
     private void initLoader(String whattoload) {
-        if(whattoload != currentCache)
-            cache=null;
-        currentCache = whattoload;
         if(whattoload.equals(LOAD_FAVORITED))
             return;
 
@@ -69,7 +87,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                Toast.makeText(MainActivity.this, v.getTag().toString(), Toast.LENGTH_SHORT).show();
+                Intent intent= new Intent(getApplicationContext(), DetailActivity.class);
+                intent.putExtra(DetailActivity.INTENT_EXTRA, v.getTag().toString());
+                startActivity(intent);
+
             }
         });
     }
@@ -90,8 +111,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             e.printStackTrace();
         }
 
-
-        Log.v("MainActivity", data);
         initGridView(images, ids);
     }
 
@@ -130,17 +149,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             @Override
             protected void onStartLoading() {
-                if(cache != null){
-                    deliverResult(cache);
-                    return;
-                }
 
                 forceLoad();
             }
 
             @Override
             public void deliverResult(String data) {
-                cache= data;
                 processAPIResponse(data);
             }
         };
@@ -158,52 +172,4 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     //LIFECYCLE
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        MenuItem item = menu.findItem(R.id.spinner);
-        Spinner spinner = (Spinner) item.getActionView();
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.load_array, android.R.layout.simple_spinner_item);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinner.setAdapter(adapter);
-                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        switch (position){
-                            case 0:
-                                initLoader(LOAD_POPULAR);
-                                break;
-                            case 1:
-                                initLoader(LOAD_TOP_RATED);
-                                break;
-                            case 2:
-                                initLoader(LOAD_FAVORITED);
-                                break;
-                        }
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-
-                    }
-                });
-
-
-
-        return true;
-    }
 }
