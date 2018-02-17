@@ -1,23 +1,19 @@
 package com.plasius.popularmovies;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
-import android.os.PersistableBundle;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -46,10 +42,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position){
                     case 0:
-                        initLoader(LOAD_POPULAR);
+                        initQueryLoader(LOAD_POPULAR);
                         break;
                     case 1:
-                        initLoader(LOAD_TOP_RATED);
+                        initQueryLoader(LOAD_TOP_RATED);
                         break;
                 }
             }
@@ -60,13 +56,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-        initLoader(LOAD_POPULAR);
 
+        initQueryLoader(LOAD_POPULAR);
     }
 
-    private void initLoader(String whattoload) {
-        if(whattoload.equals(LOAD_FAVORITED))
-            return;
+    //called at the start and when the spinner changed
+    private void initQueryLoader(String whattoload) {
+        if(!isOnline())
+            Toast.makeText(this, "Please get a connection.", Toast.LENGTH_SHORT).show();
 
         Bundle bundle = new Bundle();
         bundle.putString(LOAD_TYPE_EXTRA, whattoload);
@@ -81,6 +78,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
+    //checks whether we have an access to the internet
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    //called with the data by processAPIResponse to build our GridView
     private void initGridView(String[] images, long[] ids){
         GridView gridview = findViewById(R.id.gridview);
         gridview.setAdapter(new IconAdapter(images, ids, this));
@@ -95,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
     }
 
+    //called when we have data, calls initGridView()
     private void processAPIResponse(String data){
         String[] images= new String[20];
         long[] ids= new long[20];
@@ -169,7 +176,4 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onLoaderReset(Loader<String> loader) {
 
     }
-
-    //LIFECYCLE
-
 }
