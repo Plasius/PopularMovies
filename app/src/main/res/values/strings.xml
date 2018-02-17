@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <string name="APIKEY">INSERT_HERE</string>
+</resources>
