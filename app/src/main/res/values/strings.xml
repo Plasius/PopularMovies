@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Popular Movies</string>
-    <string name="API_KEY">INSERT_HERE</string>
     <string name="menu_sort_label">sort</string>
     <string name="loading_text">Loading</string>
     <string name="synopsis_text">Synopsis:</string>

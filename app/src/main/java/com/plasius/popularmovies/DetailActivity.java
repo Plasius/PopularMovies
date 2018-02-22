@@ -19,9 +19,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
+import butterknife.BindView;
+
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<String>{
     public static final String INTENT_EXTRA = "movieextra";
     private static final int MOVIE_LOADER_ID = 3205;
+
+    @BindView(R.id.detail_title_tv) TextView tv_title;
+    @BindView(R.id.detail_rating_tv) TextView tv_rating;
+    @BindView(R.id.detail_release_tv) TextView tv_release;
+    @BindView(R.id.detail_overview_tv) TextView tv_overview;
+    @BindView(R.id.detail_iv) ImageView iv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,11 +61,10 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         String baseURL = "http://image.tmdb.org/t/p/"+"w342/";
         try{
             JSONObject jsonObject = new JSONObject(data);
-            ((TextView)findViewById(R.id.detail_title_tv)).setText(jsonObject.getString("title"));
-            ((TextView)findViewById(R.id.detail_rating_tv)).setText(Double.toString(jsonObject.getDouble("vote_average")));
-            ((TextView)findViewById(R.id.detail_release_tv)).setText(jsonObject.getString("release_date"));
-            ((TextView)findViewById(R.id.detail_overview_tv)).setText(jsonObject.getString("overview"));
-            ImageView iv = ((ImageView)findViewById(R.id.detail_iv));
+            tv_title.setText(jsonObject.getString("title"));
+            tv_rating.setText(Double.toString(jsonObject.getDouble("vote_average")));
+            tv_release.setText(jsonObject.getString("release_date"));
+            tv_overview.setText(jsonObject.getString("overview"));
             Picasso.with(this).load(baseURL+jsonObject.getString("poster_path")).resize(185,278).into(iv);
         }catch (Exception e){
             e.printStackTrace();
@@ -97,7 +104,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
             HttpURLConnection urlConnection = null;
             try {
-                URL url = new URL("http://api.themoviedb.org/3/movie/"+context.getIntent().getStringExtra(INTENT_EXTRA)+"?api_key="+ context.getString(R.string.API_KEY));
+                URL url = new URL("http://api.themoviedb.org/3/movie/"+context.getIntent().getStringExtra(INTENT_EXTRA)+"?api_key="+ BuildConfig.API_KEY);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = urlConnection.getInputStream();
 
