@@ -31,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final String LOAD_POPULAR = "popular";
     //private static final String LOAD_FAVORITED = "favorites";
 
+    Movie[] movies;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,14 +84,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     //called with the data by processAPIResponse to build our GridView
-    private void initGridView(String[] images, long[] ids){
+    private void initGridView(){
         GridView gridview = findViewById(R.id.gridview);
-        gridview.setAdapter(new IconAdapter(images, ids, this));
+        gridview.setAdapter(new IconAdapter(movies, this));
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 Intent intent= new Intent(getApplicationContext(), DetailActivity.class);
-                intent.putExtra(DetailActivity.INTENT_EXTRA, v.getTag().toString());
+                intent.putExtra(DetailActivity.INTENT_EXTRA, movies[position]);
                 startActivity(intent);
 
             }
@@ -100,22 +102,27 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     //called when we have data, calls initGridView()
     private void processAPIResponse(String data){
-        String[] images= new String[20];
-        long[] ids= new long[20];
+        Movie movies [] = new Movie[20];
         String baseURL = "http://image.tmdb.org/t/p/"+"w185/";
         try {
             JSONObject jObject = new JSONObject(data);
             JSONArray jsonImages = jObject.getJSONArray("results");
             for(int i=0; i<jsonImages.length(); i++){
-                images[i] = baseURL + jsonImages.getJSONObject(i).getString("poster_path");
-                ids[i] = jsonImages.getJSONObject(i).getLong("id");
+                movies[i] = new Movie(
+                        jsonImages.getJSONObject(i).getLong("id"),
+                        jsonImages.getJSONObject(i).getString("title"),
+                        jsonImages.getJSONObject(i).getString("release_date"),
+                        baseURL+ jsonImages.getJSONObject(i).getString("poster_path"),
+                        jsonImages.getJSONObject(i).getString("overview"),
+                        jsonImages.getJSONObject(i).getDouble("vote_average")
+                );
             }
 
         }catch (Exception e){
             e.printStackTrace();
         }
-
-        initGridView(images, ids);
+        this.movies= movies;
+        initGridView();
     }
 
     //LoaderManager

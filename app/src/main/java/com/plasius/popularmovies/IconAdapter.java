@@ -16,23 +16,20 @@ import com.squareup.picasso.Picasso;
 
 public class IconAdapter extends BaseAdapter{
     private Context context;
-    private String[] images;
-    private long[] ids;
+    Movie[] movies;
 
-    IconAdapter(String[] images, long[] ids, Context c){
+    IconAdapter(Movie[] movies, Context c){
         context= c;
-        this.images = images;
-        this.ids= ids;
+        this.movies = movies;
     }
 
     @Override
     public int getCount() {
-        return images.length;
+        return movies.length;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ImageView imageView;
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v;
         if (convertView == null) {
@@ -41,9 +38,8 @@ public class IconAdapter extends BaseAdapter{
             v= convertView;
         }
 
-        v.setTag(ids[position]);
         ImageView img = v.findViewById(R.id.item_icon_iv);
-        Picasso.with(context).load(images[position]).resize(185,278).into(img);
+        Picasso.with(context).load(movies[position].imagePath).resize(185,278).into(img);
         return v;
     }
 

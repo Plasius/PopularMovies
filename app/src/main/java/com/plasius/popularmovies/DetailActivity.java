@@ -37,6 +37,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         setContentView(R.layout.activity_detail);
 
         initMovieLoader();
+        processIntent((Movie)getIntent().getExtras().getParcelable(INTENT_EXTRA));
     }
 
     private void initMovieLoader() {
@@ -44,7 +45,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             Toast.makeText(this, "Please get a connection.", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        /* TODO
         LoaderManager loaderManager = getSupportLoaderManager();
         Loader<String> loader = loaderManager.getLoader(MOVIE_LOADER_ID);
         if(loader==null){
@@ -52,23 +53,17 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }else{
             loaderManager.restartLoader(MOVIE_LOADER_ID, null, this);
         }
-
+        */
 
     }
 
     //called with json to populate UI
-    private void processAPIResponse(String data){
-        String baseURL = "http://image.tmdb.org/t/p/"+"w342/";
-        try{
-            JSONObject jsonObject = new JSONObject(data);
-            tv_title.setText(jsonObject.getString("title"));
-            tv_rating.setText(Double.toString(jsonObject.getDouble("vote_average")));
-            tv_release.setText(jsonObject.getString("release_date"));
-            tv_overview.setText(jsonObject.getString("overview"));
-            Picasso.with(this).load(baseURL+jsonObject.getString("poster_path")).resize(185,278).into(iv);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+    private void processIntent(Movie movie){
+            tv_title.setText(movie.title);
+            tv_rating.setText(Double.toString(movie.average));
+            tv_release.setText(movie.release);
+            tv_overview.setText(movie.overview);
+            Picasso.with(this).load(movie.imagePath).resize(185,278).into(iv);
 
     }
 
@@ -100,8 +95,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         @Override
         public String loadInBackground() {
-
-
             HttpURLConnection urlConnection = null;
             try {
                 URL url = new URL("http://api.themoviedb.org/3/movie/"+context.getIntent().getStringExtra(INTENT_EXTRA)+"?api_key="+ BuildConfig.API_KEY);
@@ -134,7 +127,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         @Override
         public void deliverResult(String data) {
-            context.processAPIResponse(data);
+            //TODO context.processAPIResponse(data);
         }
     }
 }
