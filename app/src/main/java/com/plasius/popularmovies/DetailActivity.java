@@ -9,10 +9,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.plasius.popularmovies.data.Movie;
 import com.squareup.picasso.Picasso;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -20,8 +18,9 @@ import java.net.URL;
 import java.util.Scanner;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
-public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<String>{
+public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<String[]>{
     public static final String INTENT_EXTRA = "movieextra";
     private static final int MOVIE_LOADER_ID = 3205;
 
@@ -31,13 +30,16 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     @BindView(R.id.detail_overview_tv) TextView tv_overview;
     @BindView(R.id.detail_iv) ImageView iv;
 
+    private static Movie movie;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-
+        ButterKnife.bind(this);
+        movie = getIntent().getExtras().getParcelable(INTENT_EXTRA);
         initMovieLoader();
-        processIntent((Movie)getIntent().getExtras().getParcelable(INTENT_EXTRA));
+        processIntent(movie);
     }
 
     private void initMovieLoader() {
@@ -45,46 +47,46 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             Toast.makeText(this, "Please get a connection.", Toast.LENGTH_SHORT).show();
             return;
         }
-        /* TODO
+
         LoaderManager loaderManager = getSupportLoaderManager();
-        Loader<String> loader = loaderManager.getLoader(MOVIE_LOADER_ID);
+        Loader<String[]> loader = loaderManager.getLoader(MOVIE_LOADER_ID);
         if(loader==null){
             loaderManager.initLoader(MOVIE_LOADER_ID, null, this);
         }else{
             loaderManager.restartLoader(MOVIE_LOADER_ID, null, this);
         }
-        */
+
 
     }
 
     //called with json to populate UI
     private void processIntent(Movie movie){
-            tv_title.setText(movie.title);
-            tv_rating.setText(Double.toString(movie.average));
-            tv_release.setText(movie.release);
-            tv_overview.setText(movie.overview);
-            Picasso.with(this).load(movie.imagePath).resize(185,278).into(iv);
+            tv_title.setText(movie.getTitle());
+            tv_rating.setText(Double.toString(movie.getAverage()));
+            tv_release.setText(movie.getRelease());
+            tv_overview.setText(movie.getOverview());
+            Picasso.with(this).load(movie.getImagePath()).resize(185,278).into(iv);
 
     }
 
     //LoaderManager
     @Override
-    public Loader<String> onCreateLoader(int id, Bundle args) {
+    public Loader<String[]> onCreateLoader(int id, Bundle args) {
         return new MovieAsyncLoader(this, args);
     }
 
     @Override
-    public void onLoadFinished(Loader<String> loader, String data) {
+    public void onLoadFinished(Loader<String[]> loader, String[] data) {
 
     }
 
     @Override
-    public void onLoaderReset(Loader<String> loader) {
+    public void onLoaderReset(Loader<String[]> loader) {
 
     }
 
 
-    static class MovieAsyncLoader extends AsyncTaskLoader<String> {
+    static class MovieAsyncLoader extends AsyncTaskLoader<String[]> {
         DetailActivity context;
         Bundle args;
         private MovieAsyncLoader(DetailActivity c, Bundle a){
@@ -94,10 +96,11 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
 
         @Override
-        public String loadInBackground() {
+        public String[] loadInBackground() {
             HttpURLConnection urlConnection = null;
+            String[] response = new String[2];
             try {
-                URL url = new URL("http://api.themoviedb.org/3/movie/"+context.getIntent().getStringExtra(INTENT_EXTRA)+"?api_key="+ BuildConfig.API_KEY);
+                URL url = new URL("http://api.themoviedb.org/3/movie/"+movie.getId()+"/videos?api_key="+ BuildConfig.API_KEY);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = urlConnection.getInputStream();
 
@@ -106,17 +109,35 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
                 boolean hasInput = scanner.hasNext();
                 if (hasInput) {
-                    return scanner.next();
+                    response[0]= scanner.next();
                 } else {
-                    return null;
+                    response[0] = null;
                 }
 
+
+
+                urlConnection.disconnect();
+
+
+                url = new URL("http://api.themoviedb.org/3/movie/"+movie.getId()+"/reviews?api_key="+ BuildConfig.API_KEY);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                in = urlConnection.getInputStream();
+
+                scanner = new Scanner(in);
+                scanner.useDelimiter("\\A");
+
+                hasInput = scanner.hasNext();
+                if (hasInput) {
+                    response[1]= scanner.next();
+                } else {
+                    response[1] = null;
+                }
             }catch(Exception e){
                 e.printStackTrace();
             } finally {
                 urlConnection.disconnect();
             }
-            return null;
+            return response;
         }
 
         @Override
@@ -126,8 +147,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
 
         @Override
-        public void deliverResult(String data) {
-            //TODO context.processAPIResponse(data);
+        public void deliverResult(String[] data) {
+            Toast.makeText(getContext(), data[0], Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), data[1], Toast.LENGTH_LONG).show();
         }
     }
 }

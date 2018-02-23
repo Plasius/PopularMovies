@@ -1,10 +1,6 @@
 package com.plasius.popularmovies;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -15,6 +11,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import com.plasius.popularmovies.data.Movie;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

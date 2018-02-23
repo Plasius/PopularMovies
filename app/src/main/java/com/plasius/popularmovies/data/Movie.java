@@ -1,4 +1,4 @@
-package com.plasius.popularmovies;
+package com.plasius.popularmovies.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -8,17 +8,66 @@ import android.os.Parcelable;
  */
 
 public class Movie implements Parcelable {
-    Long id;
-    String title;
-    String release;
-    String imagePath;
-    String overview;
-    Double average;
+    private Long id;
+    private String title;
+    private String release;
+    private String imagePath;
+    private String overview;
+    private Double average;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getRelease() {
+        return release;
+    }
+
+    public void setRelease(String release) {
+        this.release = release;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public String getOverview() {
+        return overview;
+    }
+
+    public void setOverview(String overview) {
+        this.overview = overview;
+    }
+
+    public Double getAverage() {
+        return average;
+    }
+
+    public void setAverage(Double average) {
+        this.average = average;
+    }
 
 
 
 
-    Movie(long iD, String t, String r, String iP, String o, Double a){
+
+    public Movie(long iD, String t, String r, String iP, String o, Double a){
         title=t;
         release=r;
         imagePath=iP;

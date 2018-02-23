@@ -5,9 +5,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
 
+import com.plasius.popularmovies.data.Movie;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -39,7 +39,7 @@ public class IconAdapter extends BaseAdapter{
         }
 
         ImageView img = v.findViewById(R.id.item_icon_iv);
-        Picasso.with(context).load(movies[position].imagePath).resize(185,278).into(img);
+        Picasso.with(context).load(movies[position].getImagePath()).resize(185,278).into(img);
         return v;
     }
 
