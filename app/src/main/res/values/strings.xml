@@ -12,5 +12,6 @@
     <string-array name="load_array">
         <item>Popular</item>
         <item>Top Rated</item>
+        <item>Favorites</item>
     </string-array>
 </resources>

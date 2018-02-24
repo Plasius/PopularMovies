@@ -64,9 +64,6 @@ public class Movie implements Parcelable {
     }
 
 
-
-
-
     public Movie(long iD, String t, String r, String iP, String o, Double a){
         title=t;
         release=r;
@@ -112,4 +109,5 @@ public class Movie implements Parcelable {
         dest.writeString(overview);
         dest.writeDouble(average);
     }
+
 }

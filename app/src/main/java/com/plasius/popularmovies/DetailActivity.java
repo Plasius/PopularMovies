@@ -1,17 +1,29 @@
 package com.plasius.popularmovies;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.ContentValues;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.plasius.popularmovies.data.Movie;
+import com.plasius.popularmovies.data.MovieContentProvider;
+import com.plasius.popularmovies.data.MovieContract;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -29,6 +41,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     @BindView(R.id.detail_release_tv) TextView tv_release;
     @BindView(R.id.detail_overview_tv) TextView tv_overview;
     @BindView(R.id.detail_iv) ImageView iv;
+    @BindView(R.id.fab) FloatingActionButton fab;
 
     private static Movie movie;
 
@@ -40,6 +53,40 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         movie = getIntent().getExtras().getParcelable(INTENT_EXTRA);
         initMovieLoader();
         processIntent(movie);
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                Cursor c = getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                        null,
+                        MovieContract.MovieEntry.COL_ID + "=?",
+                        new String[]{movie.getId().toString()},
+                        null);
+
+                if (c != null) {
+                    if (c.getCount() > 0) {
+                        Uri deleteURI = MovieContract.MovieEntry.CONTENT_URI.buildUpon().appendPath(movie.getId().toString()).build();
+                        int deleted = getContentResolver().delete(deleteURI, null, null);
+                        if (deleted > 0)
+                            fab.setImageResource(R.drawable.ic_favorite_border_black_48dp);
+
+                    } else {
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put(MovieContract.MovieEntry.COL_ID, movie.getId());
+                        contentValues.put(MovieContract.MovieEntry.COL_IMAGE, movie.getImagePath());
+                        contentValues.put(MovieContract.MovieEntry.COL_RELEASE, movie.getRelease());
+                        contentValues.put(MovieContract.MovieEntry.COL_OVERVIEW, movie.getOverview());
+                        contentValues.put(MovieContract.MovieEntry.COL_TITLE, movie.getTitle());
+                        contentValues.put(MovieContract.MovieEntry.COL_VOTE_AVERAGE, movie.getAverage());
+                        Uri insertUri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, contentValues);
+                        if (insertUri != null)
+                            fab.setImageResource(R.drawable.ic_favorite_black_48dp);
+                    }
+                }
+            }
+        });
     }
 
     private void initMovieLoader() {
@@ -59,14 +106,26 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     }
 
-    //called with json to populate UI
     private void processIntent(Movie movie){
             tv_title.setText(movie.getTitle());
             tv_rating.setText(Double.toString(movie.getAverage()));
             tv_release.setText(movie.getRelease());
             tv_overview.setText(movie.getOverview());
-            Picasso.with(this).load(movie.getImagePath()).resize(185,278).into(iv);
+            Picasso.with(this).load(movie.getImagePath()).error(R.drawable.img_not_found).resize(185,278).into(iv);
 
+            Cursor c = getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                null,
+                MovieContract.MovieEntry.COL_ID+"=?",
+                new String[]{movie.getId().toString()},
+                null);
+
+            if(c!=null) {
+                if (c.getCount()>0) {
+                    fab.setImageResource(R.drawable.ic_favorite_black_48dp);
+                } else {
+                    fab.setImageResource(R.drawable.ic_favorite_border_black_48dp);
+                }
+            }
     }
 
     //LoaderManager
@@ -148,8 +207,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         @Override
         public void deliverResult(String[] data) {
-            Toast.makeText(getContext(), data[0], Toast.LENGTH_LONG).show();
-            Toast.makeText(getContext(), data[1], Toast.LENGTH_LONG).show();
+            //TODO
+            //Toast.makeText(getContext(), data[0], Toast.LENGTH_LONG).show();
+            //Toast.makeText(getContext(), data[1], Toast.LENGTH_LONG).show();
         }
     }
 }

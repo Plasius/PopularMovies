@@ -39,7 +39,7 @@ public class IconAdapter extends BaseAdapter{
         }
 
         ImageView img = v.findViewById(R.id.item_icon_iv);
-        Picasso.with(context).load(movies[position].getImagePath()).resize(185,278).into(img);
+        Picasso.with(context).load(movies[position].getImagePath()).error(R.drawable.img_not_found).resize(185,278).into(img);
         return v;
     }
 

@@ -19,8 +19,8 @@ public class MovieContract {
         public static final String COL_ID = "movieid";
         public static final String COL_TITLE = "title";
         public static final String COL_RELEASE = "release";
-        public static final String COL_IMAGE = "image";
         public static final String COL_VOTE_AVERAGE = "average";
+        public static final String COL_IMAGE = "image";
         public static final String COL_OVERVIEW = "overview";
     }
 }
