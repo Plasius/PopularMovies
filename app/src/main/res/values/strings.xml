@@ -8,6 +8,9 @@
     <string name="title_text">Title:</string>
     <string name="poster_text">Poster</string>
     <string name="popular_movies_text">Popular Movies</string>
+    <string name="play_icon">Play icon</string>
+    <string name="trailer">Preview</string>
+    <string name="reviews">Reviews</string>
 
     <string-array name="load_array">
         <item>Popular</item>

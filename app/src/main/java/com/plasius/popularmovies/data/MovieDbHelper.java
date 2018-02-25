@@ -10,25 +10,24 @@ import com.plasius.popularmovies.data.MovieContract.MovieEntry;
  * Created by PlasiusPC on 24.02.2018.
  */
 
-public class MovieDbHelper extends SQLiteOpenHelper{
+public class MovieDbHelper extends SQLiteOpenHelper {
+    private static final int VERSION = 2;
     private static String DATABASE_NAME = "movies.db";
 
-    private static final int VERSION = 2;
-
-    MovieDbHelper(Context context){
+    MovieDbHelper(Context context) {
         super(context, DATABASE_NAME, null, VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         final String CREATE_TABLE = "CREATE TABLE " + MovieEntry.TABLE_NAME + " (" +
-                MovieEntry._ID                      + " INTEGER PRIMARY KEY, " +
-                MovieEntry.COL_ID                   + " INTEGER NOT NULL, " +
-                MovieEntry.COL_TITLE                + " TEXT NOT NULL, " +
-                MovieEntry.COL_RELEASE              + " TEXT NOT NULL, " +
-                MovieEntry.COL_VOTE_AVERAGE         + " REAL NOT NULL, " +
-                MovieEntry.COL_IMAGE                + " TEXT NOT NULL, " +
-                MovieEntry.COL_OVERVIEW             + " TEXT NOT NULL);";
+                MovieEntry._ID + " INTEGER PRIMARY KEY, " +
+                MovieEntry.COL_ID + " INTEGER NOT NULL, " +
+                MovieEntry.COL_TITLE + " TEXT NOT NULL, " +
+                MovieEntry.COL_RELEASE + " TEXT NOT NULL, " +
+                MovieEntry.COL_VOTE_AVERAGE + " REAL NOT NULL, " +
+                MovieEntry.COL_IMAGE + " TEXT NOT NULL, " +
+                MovieEntry.COL_OVERVIEW + " TEXT NOT NULL);";
 
         db.execSQL(CREATE_TABLE);
     }

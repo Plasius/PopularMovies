@@ -8,12 +8,40 @@ import android.os.Parcelable;
  */
 
 public class Movie implements Parcelable {
+    //parcel
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public Movie createFromParcel(Parcel in) {
+            return new Movie(in);
+        }
+
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
     private Long id;
     private String title;
     private String release;
     private String imagePath;
     private String overview;
     private Double average;
+
+    public Movie(long iD, String t, String r, String iP, String o, Double a) {
+        title = t;
+        release = r;
+        imagePath = iP;
+        overview = o;
+        average = a;
+        id = iD;
+    }
+
+    private Movie(Parcel in) {
+        id = in.readLong();
+        title = in.readString();
+        release = in.readString();
+        imagePath = in.readString();
+        overview = in.readString();
+        average = in.readDouble();
+    }
 
     public Long getId() {
         return id;
@@ -62,38 +90,6 @@ public class Movie implements Parcelable {
     public void setAverage(Double average) {
         this.average = average;
     }
-
-
-    public Movie(long iD, String t, String r, String iP, String o, Double a){
-        title=t;
-        release=r;
-        imagePath=iP;
-        overview=o;
-        average=a;
-        id=iD;
-    }
-
-
-    //parcel
-    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
-        public Movie createFromParcel(Parcel in) {
-            return new Movie(in);
-        }
-
-        public Movie[] newArray(int size) {
-            return new Movie[size];
-        }
-    };
-
-    private Movie(Parcel in){
-        id = in.readLong();
-        title = in.readString();
-        release=in.readString();
-        imagePath=in.readString();
-        overview=in.readString();
-        average=in.readDouble();
-    }
-
 
     @Override
     public int describeContents() {

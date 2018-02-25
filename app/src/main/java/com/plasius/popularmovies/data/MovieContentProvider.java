@@ -3,22 +3,14 @@ package com.plasius.popularmovies.data;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
-
-import java.io.File;
-import java.io.FileOutputStream;
+import com.plasius.popularmovies.Utils;
 
 import static com.plasius.popularmovies.data.MovieContract.MovieEntry.COL_ID;
 import static com.plasius.popularmovies.data.MovieContract.MovieEntry.COL_IMAGE;
@@ -28,10 +20,11 @@ import static com.plasius.popularmovies.data.MovieContract.MovieEntry.TABLE_NAME
  * Created by PlasiusPC on 24.02.2018.
  */
 
-public class MovieContentProvider extends ContentProvider{
+public class MovieContentProvider extends ContentProvider {
     public static final int MOVIES = 100;
     public static final int MOVIE_WITH_ID = 101;
     private static final UriMatcher uriMatcher = buildUriMatcher();
+    private MovieDbHelper movieDbHelper;
 
     public static UriMatcher buildUriMatcher() {
         UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -40,8 +33,6 @@ public class MovieContentProvider extends ContentProvider{
 
         return uriMatcher;
     }
-
-    private MovieDbHelper movieDbHelper;
 
     @Override
     public boolean onCreate() {
@@ -62,10 +53,10 @@ public class MovieContentProvider extends ContentProvider{
             case MOVIES:
                 String imagePath = values.getAsString(COL_IMAGE);
                 values.remove(MovieContract.MovieEntry.COL_IMAGE);
-                values.put(COL_IMAGE, getStorageLocation(values.getAsString(COL_ID), imagePath));
+                values.put(COL_IMAGE, Utils.getStorageLocation(values.getAsString(COL_ID), imagePath, getContext()));
 
                 long id = db.insert(TABLE_NAME, null, values);
-                if ( id > 0 ) {
+                if (id > 0) {
                     returnUri = ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI, id);
                 } else {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
@@ -79,39 +70,6 @@ public class MovieContentProvider extends ContentProvider{
         return returnUri;
     }
 
-    private String getStorageLocation(final String movieid, String movieImage) {
-        Picasso.with(getContext())
-                .load(movieImage)
-                .into(new Target() {
-                          @Override
-                          public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                              try {
-
-                                  String name = movieid + ".jpg";
-                                  FileOutputStream out = getContext().openFileOutput(name, Context.MODE_PRIVATE);
-                                  bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-
-                                  out.flush();
-                                  out.close();
-
-                              } catch(Exception e){
-                                  e.printStackTrace();
-                              }
-                          }
-
-                          @Override
-                          public void onBitmapFailed(Drawable errorDrawable) {
-                          }
-
-                          @Override
-                          public void onPrepareLoad(Drawable placeHolderDrawable) {
-                          }
-                      }
-                );
-
-
-        return "file:" + getContext().getFilesDir()+ "/"+movieid+".jpg";
-    }
 
     //READ
     @Nullable
@@ -124,7 +82,7 @@ public class MovieContentProvider extends ContentProvider{
 
         switch (match) {
             case MOVIES:
-                retCursor =  db.query(TABLE_NAME,
+                retCursor = db.query(TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -152,8 +110,8 @@ public class MovieContentProvider extends ContentProvider{
         switch (match) {
             case MOVIE_WITH_ID:
                 String movieid = uri.getPathSegments().get(1);
-                tasksDeleted = db.delete(TABLE_NAME, MovieContract.MovieEntry.COL_ID+"=?", new String[]{movieid});
-                deleteImage(movieid);
+                tasksDeleted = db.delete(TABLE_NAME, MovieContract.MovieEntry.COL_ID + "=?", new String[]{movieid});
+                Utils.deleteImage(movieid, getContext());
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -166,12 +124,6 @@ public class MovieContentProvider extends ContentProvider{
         return tasksDeleted;
     }
 
-    private void deleteImage(String movieid) {
-        File fdelete = new File(getContext().getFilesDir(),movieid+".jpg");
-        if (fdelete.exists()) {
-            fdelete.delete();
-        }
-    }
 
     //UPDATE
     @Override

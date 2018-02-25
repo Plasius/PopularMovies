@@ -1,17 +1,16 @@
 package com.plasius.popularmovies;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -27,15 +26,15 @@ import org.json.JSONObject;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Scanner;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie[]>{
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie[]> {
     private static final int MOVIE_LOADER_ID = 3204;
     private static final String LOAD_TYPE_EXTRA = "whattoload";
     private static final String LOAD_TOP_RATED = "top_rated";
     private static final String LOAD_POPULAR = "popular";
     private static final String LOAD_FAVORITED = "favorites";
+    private static int scrollPos;
 
 
     Movie[] movies;
@@ -47,16 +46,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         setContentView(R.layout.activity_main);
 
-        final Spinner spinner= findViewById(R.id.spinner);
+        final Spinner spinner = findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if(!Utils.isOnline(getBaseContext()) && position!=2){
+                if (!Utils.isOnline(getBaseContext()) && position != 2) {
                     Toast.makeText(getBaseContext(), "Please get a connection.", Toast.LENGTH_SHORT).show();
                     spinner.setSelection(2);
                     return;
                 }
-                switch (position){
+                switch (position) {
                     case 0:
                         initLoader(LOAD_POPULAR);
                         break;
@@ -75,15 +74,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-        if(!Utils.isOnline(this)){
+        if (!Utils.isOnline(this)) {
             Toast.makeText(this, "Please get a connection.", Toast.LENGTH_SHORT).show();
             initLoader(LOAD_FAVORITED);
             spinner.setSelection(2);
-        }else{
+        } else {
             initLoader(LOAD_POPULAR);
         }
 
-        //request permission to store images
+        //request permission to store images if not permission not granted will be relying on .error() from Picasso
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{
                     Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -93,24 +92,33 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
 
-    //called with the data by processAPIResponse to build our GridView
-    private void initGridView(){
-        GridView gridview = findViewById(R.id.gridview);
-        if(movies==null){
+    private void initGridView() {
+        final GridView gridview = findViewById(R.id.gridview);
+        if (movies == null) {
             gridview.setAdapter(null);
-            Toast.makeText(this, "You have no favorites.", Toast.LENGTH_SHORT).show();
+            Snackbar snackbar = Snackbar.make(findViewById(R.id.main_rl), "You have no favorites", Snackbar.LENGTH_SHORT);
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+            snackbar.show();
             return;
-            
+
         }
         gridview.setAdapter(new IconAdapter(movies, this));
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                Intent intent= new Intent(getApplicationContext(), DetailActivity.class);
+                Intent intent = new Intent(getApplicationContext(), DetailActivity.class);
                 intent.putExtra(DetailActivity.INTENT_EXTRA, movies[position]);
+                scrollPos = position;
                 startActivity(intent);
 
 
+            }
+        });
+
+        gridview.post(new Runnable() {
+            @Override
+            public void run() {
+                gridview.setSelection(scrollPos);
             }
         });
 
@@ -125,20 +133,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         LoaderManager loaderManager = getSupportLoaderManager();
         Loader<String> loader = loaderManager.getLoader(MOVIE_LOADER_ID);
-        if(loader==null){
+        if (loader == null) {
             loaderManager.initLoader(MOVIE_LOADER_ID, bundle, this);
-        }else{
+        } else {
             loaderManager.restartLoader(MOVIE_LOADER_ID, bundle, this);
         }
 
     }
 
 
-
-
     //LoaderManager
     @Override
-    public Loader<Movie[]> onCreateLoader(int id,  Bundle args) {
+    public Loader<Movie[]> onCreateLoader(int id, Bundle args) {
         return new MoviesAsyncLoader(this, args);
     }
 
@@ -152,25 +158,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
-    static class MoviesAsyncLoader extends AsyncTaskLoader<Movie[]>{
+    static class MoviesAsyncLoader extends AsyncTaskLoader<Movie[]> {
         MainActivity context;
         Bundle args;
-        private MoviesAsyncLoader(MainActivity c, Bundle a){
+
+        private MoviesAsyncLoader(MainActivity c, Bundle a) {
             super(c);
             context = c;
-            args= a;
+            args = a;
         }
 
         @Override
         public Movie[] loadInBackground() {
-            if(args.getString(LOAD_TYPE_EXTRA) == LOAD_FAVORITED){
+            if (args.getString(LOAD_TYPE_EXTRA) == LOAD_FAVORITED) {
                 Movie[] movies = null;
-                Cursor c = context.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,null,null,null,null);
-                if(c!= null){
-                    if(c.getCount()>0 && c.moveToFirst()){
+                Cursor c = context.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, null, null, null);
+                if (c != null) {
+                    if (c.getCount() > 0 && c.moveToFirst()) {
                         movies = new Movie[c.getCount()];
-                        int i=0;
-                        do{
+                        int i = 0;
+                        do {
                             movies[i] = new Movie(
                                     c.getLong(c.getColumnIndex(MovieContract.MovieEntry.COL_ID)),
                                     c.getString(c.getColumnIndex(MovieContract.MovieEntry.COL_TITLE)),
@@ -180,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                                     c.getDouble(c.getColumnIndex(MovieContract.MovieEntry.COL_VOTE_AVERAGE))
                             );
                             i++;
-                        }while(c.moveToNext());
+                        } while (c.moveToNext());
                     }
                 }
 
@@ -190,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             HttpURLConnection urlConnection = null;
             try {
                 //get movie api response
-                URL url = new URL("http://api.themoviedb.org/3/movie/"+args.getString(LOAD_TYPE_EXTRA)+"?api_key="+  BuildConfig.API_KEY);
+                URL url = new URL("http://api.themoviedb.org/3/movie/" + args.getString(LOAD_TYPE_EXTRA) + "?api_key=" + BuildConfig.API_KEY);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = urlConnection.getInputStream();
 
@@ -203,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     return null;
                 }
 
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 urlConnection.disconnect();
@@ -213,24 +220,24 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
 
-        private Movie[] processResponse(String data){
-            Movie movies [] = new Movie[20];
-            String baseURL = "http://image.tmdb.org/t/p/"+"w185/";
+        private Movie[] processResponse(String data) {
+            Movie movies[] = new Movie[20];
+            String baseURL = "http://image.tmdb.org/t/p/" + "w185/";
             try {
                 JSONObject jObject = new JSONObject(data);
                 JSONArray jsonImages = jObject.getJSONArray("results");
-                for(int i=0; i<jsonImages.length(); i++){
+                for (int i = 0; i < jsonImages.length(); i++) {
                     movies[i] = new Movie(
                             jsonImages.getJSONObject(i).getLong("id"),
                             jsonImages.getJSONObject(i).getString("title"),
                             jsonImages.getJSONObject(i).getString("release_date"),
-                            baseURL+ jsonImages.getJSONObject(i).getString("poster_path"),
+                            baseURL + jsonImages.getJSONObject(i).getString("poster_path"),
                             jsonImages.getJSONObject(i).getString("overview"),
                             jsonImages.getJSONObject(i).getDouble("vote_average")
                     );
                 }
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return movies;
@@ -238,7 +245,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         @Override
         protected void onStartLoading() {
-
             forceLoad();
         }
 

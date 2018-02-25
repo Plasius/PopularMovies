@@ -14,12 +14,12 @@ import com.squareup.picasso.Picasso;
  * Created by PlasiusPC on 17.02.2018.
  */
 
-public class IconAdapter extends BaseAdapter{
-    private Context context;
+public class IconAdapter extends BaseAdapter {
     Movie[] movies;
+    private Context context;
 
-    IconAdapter(Movie[] movies, Context c){
-        context= c;
+    public IconAdapter(Movie[] movies, Context c) {
+        context = c;
         this.movies = movies;
     }
 
@@ -34,12 +34,12 @@ public class IconAdapter extends BaseAdapter{
         View v;
         if (convertView == null) {
             v = inflater.inflate(R.layout.item_icon, null);
-        }else{
-            v= convertView;
+        } else {
+            v = convertView;
         }
 
         ImageView img = v.findViewById(R.id.item_icon_iv);
-        Picasso.with(context).load(movies[position].getImagePath()).error(R.drawable.img_not_found).resize(185,278).into(img);
+        Picasso.with(context).load(movies[position].getImagePath()).error(R.drawable.img_not_found).resize(185, 278).into(img);
         return v;
     }
 
