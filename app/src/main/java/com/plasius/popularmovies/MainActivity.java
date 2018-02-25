@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
@@ -34,24 +35,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final String LOAD_TOP_RATED = "top_rated";
     private static final String LOAD_POPULAR = "popular";
     private static final String LOAD_FAVORITED = "favorites";
-    private static int scrollPos;
-
+    Parcelable gridViewData = null;
 
     Movie[] movies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        if (savedInstanceState != null)
+            if (savedInstanceState.containsKey("gridViewData"))
+                gridViewData = savedInstanceState.getParcelable("gridViewData");
 
         setContentView(R.layout.activity_main);
+
 
         final Spinner spinner = findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (!Utils.isOnline(getBaseContext()) && position != 2) {
-                    Toast.makeText(getBaseContext(), "Please get a connection.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getBaseContext(), R.string.no_connection, Toast.LENGTH_SHORT).show();
                     spinner.setSelection(2);
                     return;
                 }
@@ -75,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
 
         if (!Utils.isOnline(this)) {
-            Toast.makeText(this, "Please get a connection.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.no_connection, Toast.LENGTH_SHORT).show();
             initLoader(LOAD_FAVORITED);
             spinner.setSelection(2);
         } else {
@@ -89,14 +92,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
             }, 3204);
         }
+
     }
 
 
     private void initGridView() {
         final GridView gridview = findViewById(R.id.gridview);
+
+
         if (movies == null) {
             gridview.setAdapter(null);
-            Snackbar snackbar = Snackbar.make(findViewById(R.id.main_rl), "You have no favorites", Snackbar.LENGTH_SHORT);
+            Snackbar snackbar = Snackbar.make(findViewById(R.id.main_rl), R.string.no_fav, Snackbar.LENGTH_SHORT);
             snackbar.getView().setBackgroundColor(getResources().getColor(R.color.colorPrimary));
             snackbar.show();
             return;
@@ -108,20 +114,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 Intent intent = new Intent(getApplicationContext(), DetailActivity.class);
                 intent.putExtra(DetailActivity.INTENT_EXTRA, movies[position]);
-                scrollPos = position;
+
                 startActivity(intent);
 
 
             }
         });
 
-        gridview.post(new Runnable() {
-            @Override
-            public void run() {
-                gridview.setSelection(scrollPos);
-            }
-        });
 
+        if (gridViewData != null)
+            gridview.onRestoreInstanceState(gridViewData);
 
     }
 
@@ -155,6 +157,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoaderReset(Loader<Movie[]> loader) {
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("gridViewData", ((GridView) findViewById(R.id.gridview)).onSaveInstanceState());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null)
+            if (savedInstanceState.containsKey("gridViewData"))
+                gridViewData = savedInstanceState.getParcelable("gridViewData");
 
     }
 
@@ -254,5 +271,4 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             context.initGridView();
         }
     }
-
 }

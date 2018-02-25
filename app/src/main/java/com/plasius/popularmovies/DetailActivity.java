@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +37,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     public static final String INTENT_EXTRA = "movieextra";
     private static final int MOVIE_LOADER_ID = 3205;
     private static Movie movie;
+    int scrollPos;
     @BindView(R.id.detail_title_tv)
     TextView tv_title;
     @BindView(R.id.detail_rating_tv)
@@ -48,10 +50,17 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     ImageView iv;
     @BindView(R.id.fab)
     FloatingActionButton fab;
+    @BindView(R.id.detail_sv)
+    ScrollView scrollView;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null)
+            if (savedInstanceState.containsKey("scrollPos"))
+                scrollPos = savedInstanceState.getInt("scrollPos");
+
         setContentView(R.layout.activity_detail);
         ButterKnife.bind(this);
         movie = getIntent().getExtras().getParcelable(INTENT_EXTRA);
@@ -89,11 +98,13 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 }
             }
         });
+
+
     }
 
     private void initMovieLoader() {
         if (!Utils.isOnline(this)) {
-            Toast.makeText(this, "Please get a connection.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.no_connection, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -128,6 +139,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 fab.setImageResource(R.drawable.ic_favorite_border_black_48dp);
             }
         }
+
+
     }
 
     private void displayAPIResponse(String[] trailers, String[] reviews, String[] authors) {
@@ -156,17 +169,21 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             }
         }
 
-        if (reviews == null)
-            return;
-
-        linearLayout = findViewById(R.id.detail_review_ll);
-        for (int i = 0; i < reviews.length; i++) {
-            View v = getLayoutInflater().inflate(R.layout.item_review, null);
-            ((TextView) v.findViewById(R.id.detail_author_tv)).setText(authors[i]);
-            ((TextView) v.findViewById(R.id.detail_review_tv)).setText(reviews[i]);
-            linearLayout.addView(v);
+        if (reviews != null) {
+            linearLayout = findViewById(R.id.detail_review_ll);
+            for (int i = 0; i < reviews.length; i++) {
+                View v = getLayoutInflater().inflate(R.layout.item_review, null);
+                ((TextView) v.findViewById(R.id.detail_author_tv)).setText(authors[i]);
+                ((TextView) v.findViewById(R.id.detail_review_tv)).setText(reviews[i]);
+                linearLayout.addView(v);
+            }
         }
 
+        scrollView.post(new Runnable() {
+            public void run() {
+                scrollView.scrollTo(0, scrollPos);
+            }
+        });
     }
 
     private void processAPIResponse(String trailerData, String reviewData) {
@@ -222,6 +239,18 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     }
 
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("scrollPos", scrollView.getScrollY());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null)
+            if (savedInstanceState.containsKey("scrollPos"))
+                scrollPos = savedInstanceState.getInt("scrollPos");
+    }
 
     static class MovieAsyncLoader extends AsyncTaskLoader<String[]> {
         DetailActivity context;
